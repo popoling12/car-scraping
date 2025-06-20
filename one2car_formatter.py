@@ -66,6 +66,7 @@ def build_one2car_database_from_json(directory_path):
                     "Mileage": car.get('mileage_km'),
                     "Plate No.": "N/A",
                     "Seller Name": seller_name,
+                    "Phone Number":'N/A',
                     "URL": car.get('page_url')
                 }
                 all_cars_data.append(car_info)
@@ -83,7 +84,7 @@ def build_one2car_database_from_json(directory_path):
 
     column_order = [
         "Sources", "Brand", "Model", "Sub Model", "Year",
-        "Price", "Mileage", "Plate No.", "Seller Name", "URL"
+        "Price", "Mileage", "Plate No.", "Seller Name","Phone Number", "URL"
     ]
     df = df[column_order]
 

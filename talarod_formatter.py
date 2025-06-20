@@ -65,6 +65,7 @@ def build_taladrod_database_from_json(input_filepath):
                 "Mileage": "N/A",
                 "Plate No.": plate_no,  # <-- ใช้ค่าที่คำนวณใหม่
                 "Seller Name": "N/A",
+                "Phone Number":"N/A",
                 "URL": page_url
             }
             processed_data.append(car_info)
@@ -83,7 +84,7 @@ def build_taladrod_database_from_json(input_filepath):
 
     column_order = [
         "Sources", "Brand", "Model", "Sub Model", "Year",
-        "Price", "Mileage", "Plate No.", "Seller Name", "URL"
+        "Price", "Mileage", "Plate No.", "Seller Name","Phone Number", "URL"
     ]
     final_df = final_df[column_order]
 
@@ -93,7 +94,7 @@ def build_taladrod_database_from_json(input_filepath):
 # --- ส่วนหลักของโปรแกรม ---
 if __name__ == "__main__":
     # --- ส่วนที่แก้ไข: เปลี่ยนชื่อไฟล์ Input ---
-    DATA_FILE = 'talarod.json'
+    DATA_FILE = 'talarod_cars.json'
     OUTPUT_DIRECTORY = 'combined'
     OUTPUT_FILENAME = 'talad_rod_combined_data.csv'
 

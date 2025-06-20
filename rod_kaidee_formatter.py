@@ -39,7 +39,7 @@ def build_kaidee_database_from_json(input_filepath):
             # สร้าง URL ของประกาศจาก ID
             listing_id = car.get('id')
             page_url = f"https://www.kaidee.com/product/{listing_id}" if listing_id else "N/A"
-
+            phone_number = car.get("contactInfo").get("phone", 'N/A')
             car_info = {
                 "Sources": source_name,
                 "Brand": auto_info.get('brand'),
@@ -50,6 +50,7 @@ def build_kaidee_database_from_json(input_filepath):
                 "Mileage": auto_info.get('mileage'),
                 "Plate No.": "N/A",
                 "Seller Name": member_info.get('name'),
+                "Phone Number": phone_number,
                 "URL": page_url
             }
             processed_data.append(car_info)
@@ -70,7 +71,7 @@ def build_kaidee_database_from_json(input_filepath):
     # จัดลำดับคอลัมน์ให้ตรงตาม Template
     column_order = [
         "Sources", "Brand", "Model", "Sub Model", "Year",
-        "Price", "Mileage", "Plate No.", "Seller Name", "URL"
+        "Price", "Mileage", "Plate No.", "Seller Name", "Phone Number","URL"
     ]
     final_df = final_df[column_order]
 

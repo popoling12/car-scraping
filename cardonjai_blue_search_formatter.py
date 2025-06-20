@@ -57,6 +57,7 @@ def build_bluebook_database_from_json(directory_path):
                         "Mileage": "N/A",  # ไม่มีข้อมูลนี้ใน Source
                         "Plate No.": "N/A", # ไม่มีข้อมูลนี้ใน Source
                         "Seller Name": "N/A",# ไม่มีข้อมูลนี้ใน Source
+                        "Phone Number":"N/A",
                         "URL": "N/A" # ไม่มีข้อมูลนี้ใน Source
                     }
                     all_cars_data.append(car_info)
@@ -76,7 +77,7 @@ def build_bluebook_database_from_json(directory_path):
     # จัดลำดับคอลัมน์ให้ตรงกับ Template ที่ต้องการ
     column_order = [
         "Sources", "Brand", "Model", "Sub Model", "Year",
-        "Price", "Mileage", "Plate No.", "Seller Name", "URL"
+        "Price", "Mileage", "Plate No.", "Seller Name","Phone Number", "URL"
     ]
     df = df[column_order]
 

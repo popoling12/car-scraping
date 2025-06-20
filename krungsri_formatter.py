@@ -66,6 +66,7 @@ def build_krungsri_database_from_csv(input_filepath):
                 "Mileage": mileage,
                 "Plate No.": "N/A",
                 "Seller Name": "N/A",
+                "Phone Number": "N/A",
                 "URL": row.get('link')
             }
             processed_data.append(car_info)
@@ -84,7 +85,7 @@ def build_krungsri_database_from_csv(input_filepath):
     # จัดลำดับคอลัมน์ให้ตรงตาม Template
     column_order = [
         "Sources", "Brand", "Model", "Sub Model", "Year",
-        "Price", "Mileage", "Plate No.", "Seller Name", "URL"
+        "Price", "Mileage", "Plate No.", "Seller Name","Phone Number", "URL"
     ]
     final_df = final_df[column_order]
 

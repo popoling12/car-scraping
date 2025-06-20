@@ -46,7 +46,7 @@ def build_car_database_from_json(directory_path):
             for car in data.get('cars', []):
                 # ใช้ .get() เพื่อเข้าถึงข้อมูลอย่างปลอดภัย ป้องกัน error หาก key ไม่มีอยู่
                 seller_name = car.get('dealerProfileDocument', {}).get('dealerName', 'N/A')
-
+                phone_number = car.get('dealerProfileDocument', {}).get('contactMobileNumber1', 'N/A')
                 car_info = {
                     "Sources": source_name,
                     "Brand": car.get('carBrand'),
@@ -57,6 +57,7 @@ def build_car_database_from_json(directory_path):
                     "Mileage": car.get('mileage'),
                     "Plate No.": car.get('licensePlateNumber'),
                     "Seller Name": seller_name,
+                    "Phone Number": phone_number,  # ✅ เพิ่มตรงนี้,
                     "URL": car.get('carUrl') if car.get('carUrl') else "N/A"
                 }
                 all_cars_data.append(car_info)
@@ -76,7 +77,7 @@ def build_car_database_from_json(directory_path):
     # จัดลำดับคอลัมน์ให้ตรงกับ Template ที่ต้องการ
     column_order = [
         "Sources", "Brand", "Model", "Sub Model", "Year",
-        "Price", "Mileage", "Plate No.", "Seller Name", "URL"
+        "Price", "Mileage", "Plate No.", "Seller Name", "Phone Number","URL"
     ]
 
     # กรองเอาเฉพาะคอลัมน์ที่ต้องการและจัดลำดับ
