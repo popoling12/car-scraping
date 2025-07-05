@@ -1,9 +1,10 @@
+import os
 import tkinter as tk
 from tkinter import scrolledtext, messagebox, simpledialog
 from seleniumwire import webdriver
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.firefox.options import Options
-from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 import json
 import time
 import re
@@ -83,10 +84,11 @@ class KaideeScraperApp:
         """Actual browser launch logic."""
         try:
             self.log_message("Setting up Firefox driver...")
-            firefox_options = Options()
-            # firefox_options.add_argument("--headless") # Uncomment to run headless if needed
-
-            self.driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=firefox_options)
+            chrome_options = Options()
+            # chrome_options.add_argument("--headless")  # Uncomment to run headless if needed
+            chromedriver_path = os.path.join(os.getcwd(), "drivers", "chromedriver.exe")
+            chrome_options.add_argument("--window-size=1200,800")
+            self.driver = webdriver.Chrome(service=Service(chromedriver_path), options=chrome_options)
             # You can set window size after launching if not headless
             # self.driver.set_window_size(1200, 800)
             self.log_message("Firefox browser launched successfully.")

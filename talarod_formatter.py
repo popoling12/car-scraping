@@ -30,29 +30,29 @@ def build_taladrod_database_from_json(input_filepath):
 
         for car in car_list:
             # --- การคำนวณและทำความสะอาดข้อมูล ---
-            name_mmt = car.get('NameMMT', '').strip()
+            name_mmt = car.get('namemmt', '').strip()
 
             # 1. ดึง Brand
             brand = name_mmt.split(' ')[0] if name_mmt else 'N/A'
 
             # 2. ดึง Model
-            model = car.get('Model', '')
+            model = car.get('model', '')
 
             # 3. คำนวณ Sub Model
             sub_model = name_mmt.replace(brand, '', 1).replace(model, '', 1).strip()
 
             # 4. ทำความสะอาด Price
-            price_str = car.get('Prc', '0').replace(',', '')
+            price_str = car.get('prc', '0').replace(',', '')
             price = float(price_str) if price_str.isdigit() else 'N/A'
 
             # --- ส่วนที่แก้ไข: สร้าง Plate No. ตามที่ผู้ใช้กำหนด (JvNm + iPgVw) ---
-            province = car.get('JvNm', '').strip()
-            page_view_num = car.get('iPgVw', '').strip()
+            province = car.get('jvnm', '').strip()
+            page_view_num = car.get('ipgvw', '').strip()
             # นำข้อมูลมาต่อกัน ถ้ามีข้อมูลอย่างน้อยหนึ่งอย่าง
             plate_no = f"{province}{page_view_num}" if province or page_view_num else "N/A"
 
             # 6. สร้าง URL
-            car_id = car.get('Cid')
+            car_id = car.get('cid')
             page_url = f"https://www.taladrod.com/w/card/{car_id}" if car_id else "N/A"
 
             car_info = {
@@ -60,12 +60,12 @@ def build_taladrod_database_from_json(input_filepath):
                 "Brand": brand,
                 "Model": model,
                 "Sub Model": sub_model,
-                "Year": car.get('Yr'),
+                "Year": car.get('yr'),
                 "Price": price,
-                "Mileage": "N/A",
+                "Mileage": car.get('mileage'),
                 "Plate No.": plate_no,  # <-- ใช้ค่าที่คำนวณใหม่
-                "Seller Name": "N/A",
-                "Phone Number":"N/A",
+                "Seller Name":  car.get('sell_name'),
+                "Phone Number": car.get('phone'),
                 "URL": page_url
             }
             processed_data.append(car_info)
@@ -94,7 +94,7 @@ def build_taladrod_database_from_json(input_filepath):
 # --- ส่วนหลักของโปรแกรม ---
 if __name__ == "__main__":
     # --- ส่วนที่แก้ไข: เปลี่ยนชื่อไฟล์ Input ---
-    DATA_FILE = 'talarod_cars.json'
+    DATA_FILE = 'talarod.json'
     OUTPUT_DIRECTORY = 'combined'
     OUTPUT_FILENAME = 'talad_rod_combined_data.csv'
 
