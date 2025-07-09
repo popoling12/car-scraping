@@ -8,32 +8,35 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 
+
 class CarScraperGUI:
     def __init__(self, master):
         self.master = master
         master.title("Taladrod Car Scraper")
         master.geometry("1000x700")
 
-        self.car_urls = []
+        self.car_data_list = []  # เปลี่ยนชื่อเพื่อความชัดเจน
         self.running_scraper = False
         self.stop_event = threading.Event()
 
-        # --- Define checkbox characters ---
         self.CHECK_CHAR = "☑"
         self.UNCHECK_CHAR = "☐"
 
-        # --- Link Selection Frame ---
         self.link_frame = ttk.LabelFrame(master, text="Select URLs")
         self.link_frame.pack(padx=10, pady=10, fill="x", expand=False)
 
-        # --- Treeview for URLs ---
-        # Note: We are no longer using the 'image' option in the treeview
-        self.tree = ttk.Treeview(self.link_frame, columns=("Checkbox", "URL"), show="headings", selectmode="none")
-        self.tree.heading("Checkbox", text="Select", anchor=tk.CENTER)
-        self.tree.heading("URL", text="Car URL", anchor=tk.W)
-        self.tree.column("Checkbox", width=70, stretch=tk.NO, anchor=tk.CENTER)
-        self.tree.column("URL", width=800, stretch=tk.YES)
+        # --- [CHANGE 1] ปรับปรุง Treeview ให้มี 3 คอลัมน์ ---
+        self.tree = ttk.Treeview(self.link_frame, columns=("Checkbox", "Title", "URL"), show="headings",
+                                 selectmode="none")
+        self.tree.heading("Checkbox", text="เลือก", anchor=tk.CENTER)
+        self.tree.heading("Title", text="รายการรถ (Title)", anchor=tk.W)
+        self.tree.heading("URL", text="URL", anchor=tk.W)
+
+        self.tree.column("Checkbox", width=50, stretch=tk.NO, anchor=tk.CENTER)
+        self.tree.column("Title", width=450, stretch=tk.YES)
+        self.tree.column("URL", width=400, stretch=tk.YES)
         self.tree.pack(side="left", fill="both", expand=True)
+        # --- จบส่วนที่เปลี่ยนแปลง ---
 
         self.tree_scrollbar = ttk.Scrollbar(self.link_frame, orient="vertical", command=self.tree.yview)
         self.tree_scrollbar.pack(side="right", fill="y")
@@ -41,7 +44,6 @@ class CarScraperGUI:
 
         self.tree.bind("<ButtonRelease-1>", self.on_tree_click)
 
-        # --- Control Buttons for URL selection ---
         self.url_control_frame = ttk.Frame(master)
         self.url_control_frame.pack(pady=5, padx=10, fill="x")
 
@@ -51,24 +53,23 @@ class CarScraperGUI:
         self.select_all_button = ttk.Button(self.url_control_frame, text="Select All", command=self.select_all_urls)
         self.select_all_button.pack(side="left", padx=5)
 
-        self.deselect_all_button = ttk.Button(self.url_control_frame, text="Deselect All", command=self.deselect_all_urls)
+        self.deselect_all_button = ttk.Button(self.url_control_frame, text="Deselect All",
+                                              command=self.deselect_all_urls)
         self.deselect_all_button.pack(side="left", padx=5)
 
-        # --- Main Control Buttons Frame ---
         self.control_frame = ttk.Frame(master)
         self.control_frame.pack(pady=10)
 
         self.start_button = ttk.Button(self.control_frame, text="Start Scraping", command=self.start_scraping)
         self.start_button.pack(side="left", padx=10)
 
-        self.stop_button = ttk.Button(self.control_frame, text="Stop Scraping", command=self.stop_scraping, state=tk.DISABLED)
+        self.stop_button = ttk.Button(self.control_frame, text="Stop Scraping", command=self.stop_scraping,
+                                      state=tk.DISABLED)
         self.stop_button.pack(side="left", padx=10)
 
-        # --- Progress Bar ---
         self.progress_bar = ttk.Progressbar(master, orient="horizontal", mode="determinate")
         self.progress_bar.pack(fill="x", padx=10, pady=5)
 
-        # --- Log Display Frame ---
         self.log_frame = ttk.LabelFrame(master, text="Logs and Errors")
         self.log_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
@@ -76,7 +77,6 @@ class CarScraperGUI:
         self.log_text.pack(fill="both", expand=True)
         self.log_text.config(state=tk.DISABLED)
 
-        # Configure tags for colored text
         self.log_text.tag_config("red", foreground="red")
         self.log_text.tag_config("green", foreground="green")
         self.log_text.tag_config("blue", foreground="blue")
@@ -85,16 +85,23 @@ class CarScraperGUI:
     def load_urls(self):
         file_path = filedialog.askopenfilename(
             initialdir="./",
-            title="Select taladrod_links.json",
+            title="Select links.json",
             filetypes=(("JSON files", "*.json"), ("All files", "*.*"))
         )
         if file_path:
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    self.car_urls = json.load(f)
+                with open(file_path, "r", encoding="utf-8-sig") as f:
+                    self.car_data_list = json.load(f)  # อ่านค่า list ของ object
                 self.tree.delete(*self.tree.get_children())
-                for url in self.car_urls:
-                    self.tree.insert("", "end", values=[self.UNCHECK_CHAR, url])
+
+                # --- [CHANGE 2] แก้ไขการวนลูปเพื่อใส่ข้อมูลลง Treeview ---
+                for item in self.car_data_list:
+                    link = item.get("link", "N/A")  # ใช้ .get() เพื่อป้องกัน error ถ้าไม่มี key
+                    title = item.get("title", "No Title")
+                    # ใส่ข้อมูลลงใน 3 คอลัมน์
+                    self.tree.insert("", "end", values=[self.UNCHECK_CHAR, title, link])
+                # --- จบส่วนที่เปลี่ยนแปลง ---
+
                 self.log("URLs loaded successfully.", "green")
             except Exception as e:
                 self.log(f"Error loading URLs: {e}", "red")
@@ -103,34 +110,51 @@ class CarScraperGUI:
         region = self.tree.identify("region", event.x, event.y)
         if region == "cell":
             column = self.tree.identify_column(event.x)
-            if column == "#1":  # Column 1 is "Checkbox"
+            if column == "#1":  # Column 1 คือ "Checkbox"
                 item_id = self.tree.identify_row(event.y)
                 if item_id:
-                    current_value = self.tree.item(item_id, "values")[0]
-                    url = self.tree.item(item_id, "values")[1]
-                    if current_value == self.UNCHECK_CHAR:
-                        self.tree.item(item_id, values=[self.CHECK_CHAR, url])
+                    # --- [CHANGE 3] ปรับการอัปเดตข้อมูลให้สอดคล้องกับ 3 คอลัมน์ ---
+                    current_values = self.tree.item(item_id, "values")
+                    title = current_values[1]
+                    url = current_values[2]
+                    if current_values[0] == self.UNCHECK_CHAR:
+                        self.tree.item(item_id, values=[self.CHECK_CHAR, title, url])
                     else:
-                        self.tree.item(item_id, values=[self.UNCHECK_CHAR, url])
+                        self.tree.item(item_id, values=[self.UNCHECK_CHAR, title, url])
+                    # --- จบส่วนที่เปลี่ยนแปลง ---
 
     def select_all_urls(self):
         for item_id in self.tree.get_children():
-            url = self.tree.item(item_id, "values")[1]
-            self.tree.item(item_id, values=[self.CHECK_CHAR, url])
+            # --- [CHANGE 4] ปรับการอัปเดตข้อมูลให้สอดคล้องกับ 3 คอลัมน์ ---
+            values = self.tree.item(item_id, "values")
+            title = values[1]
+            url = values[2]
+            self.tree.item(item_id, values=[self.CHECK_CHAR, title, url])
+            # --- จบส่วนที่เปลี่ยนแปลง ---
 
     def deselect_all_urls(self):
         for item_id in self.tree.get_children():
-            url = self.tree.item(item_id, "values")[1]
-            self.tree.item(item_id, values=[self.UNCHECK_CHAR, url])
+            # --- [CHANGE 5] ปรับการอัปเดตข้อมูลให้สอดคล้องกับ 3 คอลัมน์ ---
+            values = self.tree.item(item_id, "values")
+            title = values[1]
+            url = values[2]
+            self.tree.item(item_id, values=[self.UNCHECK_CHAR, title, url])
+            # --- จบส่วนที่เปลี่ยนแปลง ---
 
     def get_selected_urls(self):
         selected = []
         for item_id in self.tree.get_children():
-            if self.tree.item(item_id, "values")[0] == self.CHECK_CHAR:
-                selected.append(self.tree.item(item_id, "values")[1])
+            values = self.tree.item(item_id, "values")
+            if values[0] == self.CHECK_CHAR:
+                # --- [CHANGE 6] ดึง URL จากคอลัมน์ที่ 3 (index 2) ---
+                selected.append(values[2])
+                # --- จบส่วนที่เปลี่ยนแปลง ---
         return selected
 
     def log(self, message, color="black"):
+        self.master.after(0, self._log_threadsafe, message, color)
+
+    def _log_threadsafe(self, message, color):
         self.log_text.config(state=tk.NORMAL)
         self.log_text.insert(tk.END, message + "\n", color)
         self.log_text.see(tk.END)
@@ -161,6 +185,9 @@ class CarScraperGUI:
         self.stop_event.set()
         self.log("Scraping stop requested. Waiting for current operation to finish...", "orange")
 
+    def _update_progress(self, value):
+        self.progress_bar["value"] = value
+
     def _run_scraper_thread(self, urls_to_scrape):
         all_cars = []
         chrome_options = Options()
@@ -168,6 +195,8 @@ class CarScraperGUI:
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--window-size=1920x1080")
+        chrome_options.add_argument(
+            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
         driver = None
         try:
@@ -181,6 +210,7 @@ class CarScraperGUI:
                     break
 
                 try:
+                    self.log(f"[{idx}/{total_urls}] Processing: {url}", "black")
                     driver.get(url)
                     time.sleep(2)
 
@@ -196,31 +226,31 @@ class CarScraperGUI:
                         data = json.loads(match.group(1))
                         car_count = 0
                         for car in data.get('cars', []):
-
                             all_cars.append(car)
                             car_count += 1
-                        self.log(f"[{idx}] ✅ {car_count} cars from: {url}", "green")
+                        self.log(f"[{idx}] ✅ Found {car_count} cars from: {url}", "green")
                     else:
                         self.log(f"[{idx}] ❌ Cannot find JSON data in: {url}", "red")
                 except Exception as e:
                     self.log(f"[{idx}] ❌ Error processing {url}: {e}", "red")
                 finally:
-                    self.master.after(0, lambda: self.progress_bar.step(1))
+                    self.master.after(0, self._update_progress, idx)
 
-            if all_cars:
-                save_path = filedialog.asksaveasfilename(
-                    defaultextension=".json",
-                    filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                    title="Save Car Data As..."
-                )
-                if save_path:
-                    with open(save_path, "w", encoding="utf-8") as f:
-                        json.dump(all_cars, f, ensure_ascii=False, indent=2)
-                    self.log(f"\n✅ Finished! Scraped {len(all_cars)} cars → {save_path}", "green")
+            if not self.stop_event.is_set():
+                if all_cars:
+                    save_path = filedialog.asksaveasfilename(
+                        defaultextension=".json",
+                        filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                        title="Save Car Data As..."
+                    )
+                    if save_path:
+                        with open(save_path, "w", encoding="utf-8") as f:
+                            json.dump(all_cars, f, ensure_ascii=False, indent=2)
+                        self.log(f"\n✅ Finished! Scraped {len(all_cars)} cars → {save_path}", "green")
+                    else:
+                        self.log("\n⚠️ Save cancelled by user.", "orange")
                 else:
-                    self.log("\n⚠️ Save cancelled by user.", "orange")
-            else:
-                self.log("\nNo cars were scraped.", "blue")
+                    self.log("\nNo cars were scraped.", "blue")
 
         except Exception as e:
             self.log(f"Fatal error during scraping: {e}", "red")
